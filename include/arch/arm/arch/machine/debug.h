@@ -71,9 +71,9 @@ void Arch_debugDissociateVCPUTCB(tcb_t *t);
 #define HDCR_PERFMON_TPM_SHIFT    (6)  /* Trap NS PM accesses */
 #define HDCR_PERFMON_TPMCR_SHIFT  (5)  /* Trap NS PMCR reg access */
 
-/* The kernel does not context switch the PMU, so trap EL0/EL1 accesses to
- * EL2 to stop it acting as a channel between VCPUs and native threads.
- * Read-modify-write to keep HPMN.
+/* The kernel does not context switch the self-hosted debug registers or the
+ * PMU, so trap EL0/EL1 accesses to EL2 to stop them acting as a channel
+ * between VCPUs and native threads. Read-modify-write to keep HPMN.
  */
 static inline void initHDCRVCPUTraps(void)
 {
@@ -83,6 +83,7 @@ static inline void initHDCRVCPUTraps(void)
 #else
     MRC(ARM_CP15_HDCR, hdcr);
 #endif
+    hdcr |= BIT(HDCR_DEBUG_TDA_SHIFT) | BIT(HDCR_DEBUG_TDOSA_SHIFT) | BIT(HDCR_DEBUG_TDRA_SHIFT);
 #if !defined(CONFIG_EXPORT_PMU_USER) && !defined(CONFIG_ENABLE_BENCHMARKS)
     hdcr |= BIT(HDCR_PERFMON_TPM_SHIFT);
 #endif
@@ -136,11 +137,9 @@ static inline void setHDCRTrapDebugExceptionState(bool_t enable_trapping)
                  | BIT(HDCR_DEBUG_TDRA_SHIFT)
                  | BIT(HDCR_DEBUG_TDOSA_SHIFT));
     } else {
-        /* Let the PL1 Guest VM handle debug events on its own */
-        hdcr &= ~(BIT(HDCR_DEBUG_TDE_SHIFT)
-                  | BIT(HDCR_DEBUG_TDA_SHIFT)
-                  | BIT(HDCR_DEBUG_TDRA_SHIFT)
-                  | BIT(HDCR_DEBUG_TDOSA_SHIFT));
+        /* Let the PL1 Guest VM handle debug events on its own. Register
+         * accesses stay trapped, see initHDCRVCPUTraps. */
+        hdcr &= ~BIT(HDCR_DEBUG_TDE_SHIFT);
     }
 #ifdef CONFIG_ARCH_AARCH64
     MSR("mdcr_el2", hdcr);

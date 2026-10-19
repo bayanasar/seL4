@@ -94,11 +94,12 @@ endif()
 config_option(
   KernelArmHypEnableVCPUCP14SaveAndRestore
   ARM_HYP_ENABLE_VCPU_CP14_SAVE_AND_RESTORE
-  "Trap, but don't save/restore VCPUs' CP14 accesses \
-    This allows us to turn off the save and restore of VCPU threads' CP14 \
-    context for performance (or other) reasons, we can just turn them off \
-    and trap them instead, and have the VCPUs' accesses to CP14 \
-    intercepted and delivered to the VM Monitor as fault messages"
+  "Save and restore VCPU breakpoint/watchpoint registers. Currently not usable. \
+    The kernel switches the hardware breakpoint and watchpoint register values \
+    on VCPU context switches. Guest accesses to debug registers are always \
+    trapped and delivered to the VM monitor as fault messages, regardless of \
+    this setting, because the remaining debug state is not context switched. \
+    Guests therefore cannot use hardware debug features directly."
   DEFAULT OFF
   DEPENDS "KernelSel4ArchArmHyp;NOT KernelVerificationBuild"
   DEFAULT_DISABLED OFF)
