@@ -12,6 +12,7 @@
 
 #include <arch/object/vcpu.h>
 #include <drivers/timer/arm_generic.h>
+#include <arch/machine/debug.h>
 
 /* Trap SMC and override CPSR.AIF */
 #define HCR_COMMON ( HCR_TSC | HCR_AMO | HCR_IMO \
@@ -680,6 +681,7 @@ static inline void access_fpexc(vcpu_t *vcpu, bool_t write)
 
 static inline void armv_vcpu_boot_init(void)
 {
+    initHDCRVCPUTraps();
 #if defined(ARM_HYP_TRAP_CP14_IN_VCPU_THREADS) || defined(ARM_HYP_TRAP_CP14_IN_NATIVE_USER_THREADS)
     /* On the verified build, we have implemented a workaround that ensures
      * that we don't need to save and restore the debug coprocessor's state

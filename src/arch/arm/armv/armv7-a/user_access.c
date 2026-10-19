@@ -70,6 +70,8 @@ static void check_export_pmu(void)
         v |= DBGSDER_ENABLE_SECURE_USER_NON_INVASIVE_DEBUG;
         MCR(DBGSDER, v);
     }
+#else
+    MCR(PMUSERENR, 0);
 #endif
 }
 
