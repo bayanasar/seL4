@@ -698,8 +698,11 @@ static inline void armv_vcpu_save(vcpu_t *vcpu, bool_t active)
 #ifdef ARM_HYP_CP14_SAVE_AND_RESTORE_VCPU_THREADS
     /* This is done when we are asked to save and restore the CP14 debug context
      * of VCPU threads; the register context is saved into the underlying TCB.
+     * If we are not active, this state already got stored in vcpu_switch.
      */
-    saveAllBreakpointState(vcpu->vcpuTCB);
+    if (active) {
+        saveAllBreakpointState(vcpu->vcpuTCB);
+    }
 #endif
 }
 
