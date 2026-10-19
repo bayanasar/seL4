@@ -2760,10 +2760,9 @@ exception_t benchmark_arch_map_logBuffer(word_t frame_cptr)
 #ifdef CONFIG_DEBUG_BUILD
 void kernelPrefetchAbort(word_t pc, word_t lr) VISIBLE;
 void kernelDataAbort(word_t pc) VISIBLE;
+void kernelUndefinedInstruction(word_t pc) VISIBLE;
 
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
-
-void kernelUndefinedInstruction(word_t pc) VISIBLE;
 
 void kernelPrefetchAbort(word_t pc, word_t lr)
 {
@@ -2808,6 +2807,13 @@ void kernelDataAbort(word_t pc)
     printf("Faulting instruction: 0x%"SEL4_PRIx_word"\n", pc);
     printf("FAR: 0x%"SEL4_PRIx_word" DFSR: 0x%"SEL4_PRIx_word"\n",
            getFAR(), getDFSR());
+    halt();
+}
+
+void kernelUndefinedInstruction(word_t pc)
+{
+    printf("\n\nKERNEL UNDEFINED INSTRUCTION!\n");
+    printf("Faulting instruction: 0x%"SEL4_PRIx_word"\n", pc);
     halt();
 }
 #endif /* CONFIG_ARM_HYPERVISOR_SUPPORT */
