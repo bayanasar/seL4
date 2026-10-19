@@ -57,7 +57,7 @@ void Arch_debugAssociateVCPUTCB(tcb_t *t);
 void Arch_debugDissociateVCPUTCB(tcb_t *t);
 #endif
 
-#ifdef ARM_HYP_TRAP_CP14
+#ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
 /* Those of these that trap NS accesses trap all NS accesses; we can't cause the
  * processor to only trap NS-PL0 or NS-PL1, but if we want to trap the accesses,
  * we get both (PL0 and PL1) non-secure modes' accesses.
@@ -71,6 +71,30 @@ void Arch_debugDissociateVCPUTCB(tcb_t *t);
 #define HDCR_PERFMON_TPM_SHIFT    (6)  /* Trap NS PM accesses */
 #define HDCR_PERFMON_TPMCR_SHIFT  (5)  /* Trap NS PMCR reg access */
 
+/* The kernel does not context switch the PMU, so trap EL0/EL1 accesses to
+ * EL2 to stop it acting as a channel between VCPUs and native threads.
+ * Read-modify-write to keep HPMN.
+ */
+static inline void initHDCRVCPUTraps(void)
+{
+    word_t hdcr;
+#ifdef CONFIG_ARCH_AARCH64
+    MRS("mdcr_el2", hdcr);
+#else
+    MRC(ARM_CP15_HDCR, hdcr);
+#endif
+#if !defined(CONFIG_EXPORT_PMU_USER) && !defined(CONFIG_ENABLE_BENCHMARKS)
+    hdcr |= BIT(HDCR_PERFMON_TPM_SHIFT);
+#endif
+#ifdef CONFIG_ARCH_AARCH64
+    MSR("mdcr_el2", hdcr);
+#else
+    MCR(ARM_CP15_HDCR, hdcr);
+#endif
+}
+#endif /* CONFIG_ARM_HYPERVISOR_SUPPORT */
+
+#ifdef ARM_HYP_TRAP_CP14
 /** When running seL4 as a hypervisor, if we're building with support for the
  * hardware debug API, we have a case of indirection that we need to handle.
  *
