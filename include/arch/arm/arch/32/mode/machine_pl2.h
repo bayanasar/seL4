@@ -31,6 +31,26 @@ static inline void writeContextIDAndPD(word_t id, word_t pd_val)
     isb();
 }
 
+/** Returns the full 64-bit VTTBR (stage 2 translation table base and VMID).
+ *
+ * Mark as ignored for the C parser, because of the two outputs of the same asm block.
+ */
+/** MODIFIES: */
+/** DONT_TRANSLATE */
+static inline uint64_t getVTTBR(void)
+{
+    word_t lo, hi;
+    asm volatile("mrrc p15, 6, %0, %1, c2" : "=r"(lo), "=r"(hi));
+    return ((uint64_t)hi << 32) | lo;
+}
+
+/** Restores a full 64-bit VTTBR value previously read with getVTTBR(). */
+static inline void setVTTBR(uint64_t vttbr)
+{
+    asm volatile("mcrr p15, 6, %0, %1, c2" : : "r"((word_t)vttbr), "r"((word_t)(vttbr >> 32)));
+    isb();
+}
+
 static inline void setCurrentHypPD(paddr_t addr)
 {
     word_t zero = 0;

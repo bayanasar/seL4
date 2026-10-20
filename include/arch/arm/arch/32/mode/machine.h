@@ -361,29 +361,25 @@ static inline void invalidateLocalTLB(void)
     isb();
 }
 
+#ifndef CONFIG_ARM_HYPERVISOR_SUPPORT
+/* In hyp mode, hw_asid_t is a stage 2 VMID and these two operations are
+ * provided by armv/tlb.h instead. */
 static inline void invalidateLocalTLB_ASID(hw_asid_t hw_asid)
 {
-    if (config_set(CONFIG_ARM_HYPERVISOR_SUPPORT)) {
-        invalidateLocalTLB();
-    } else {
-        dsb();
-        asm volatile("mcr p15, 0, %0, c8, c7, 2" : : "r"(hw_asid));
-        dsb();
-        isb();
-    }
+    dsb();
+    asm volatile("mcr p15, 0, %0, c8, c7, 2" : : "r"(hw_asid));
+    dsb();
+    isb();
 }
 
 static inline void invalidateLocalTLB_VAASID(word_t mva_plus_asid)
 {
-    if (config_set(CONFIG_ARM_HYPERVISOR_SUPPORT)) {
-        invalidateLocalTLB();
-    } else {
-        dsb();
-        asm volatile("mcr p15, 0, %0, c8, c7, 1" : : "r"(mva_plus_asid));
-        dsb();
-        isb();
-    }
+    dsb();
+    asm volatile("mcr p15, 0, %0, c8, c7, 1" : : "r"(mva_plus_asid));
+    dsb();
+    isb();
 }
+#endif /* !CONFIG_ARM_HYPERVISOR_SUPPORT */
 
 void lockTLBEntry(vptr_t vaddr);
 
