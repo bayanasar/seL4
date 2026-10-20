@@ -73,7 +73,7 @@ void Arch_debugDissociateVCPUTCB(tcb_t *t);
 
 /* The kernel does not context switch the PMU, so trap EL0/EL1 accesses to
  * EL2 to stop it acting as a channel between VCPUs and native threads.
- * Read-modify-write to keep HPMN.
+ * Read-modify-write to retain HDCR.HPMN.
  */
 static inline void initHDCRVCPUTraps(void)
 {
