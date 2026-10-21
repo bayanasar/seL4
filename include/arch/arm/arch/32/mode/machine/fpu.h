@@ -52,16 +52,11 @@ static void clearEnFPEXC(void)
 
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) && defined(CONFIG_HAVE_FPU)
 
-#define HCPTR_CP10_BIT  10
-#define HCPTR_CP11_BIT  11
-#define HCPTR_TASE_BIT  15
-#define HCPTR_MASK      ~(BIT(HCPTR_CP10_BIT) | BIT(HCPTR_CP11_BIT) | BIT(HCPTR_TASE_BIT))
-
 /* enable FPU accesses in Hyp mode */
 static inline void enableFpuInstInHyp(void)
 {
     if (!ARCH_NODE_STATE(armHSFPUEnabled)) {
-        setHCPTR(getHCPTR() & HCPTR_MASK);
+        setHCPTR(getHCPTR() & ~HCPTR_FPU_TRAPS);
         ARCH_NODE_STATE(armHSFPUEnabled) = true;
     }
 }
@@ -70,7 +65,7 @@ static inline void enableFpuInstInHyp(void)
 static inline void trapFpuInstToHyp(void)
 {
     if (ARCH_NODE_STATE(armHSFPUEnabled)) {
-        setHCPTR(getHCPTR() | ~HCPTR_MASK);
+        setHCPTR(getHCPTR() | HCPTR_FPU_TRAPS);
         ARCH_NODE_STATE(armHSFPUEnabled) = false;
     }
 }
